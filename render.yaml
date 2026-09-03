@@ -9,3 +9,7 @@ services:
         value: 24.14.1
       - key: JWT_SECRET
         sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
