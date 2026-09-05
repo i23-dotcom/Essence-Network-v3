@@ -196,7 +196,7 @@ class H(BaseHTTPRequestHandler):
         return self.js({'ok':False,'message':'Not found'},404)
     def public_channel(self,c,full=False):
         with lock:s=state['channels'][c['id']].copy();s.pop('proc',None)
-        out={**c,**s,'stream_url':stream_url(c['id'])}
+        out={**c,**s,'stream_url':stream_url(c['id']),'program_url':('/media/'+urllib.parse.quote(Path(s['current']).name)) if media_path(s['current']) else None}
         if not full: out.pop('playlist',None);out.pop('visual',None);out.pop('graphics',None);out.pop('audio',None)
         return out
     def file(self,name):
