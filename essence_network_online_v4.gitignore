@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+data/
+hls/
+logs/
+cloudflare_inputs.json
