@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: essence-network-online
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: ESSENCE_DATA_DIR
+        value: /var/data
+      - key: ESSENCE_ADMIN_EMAIL
+        sync: false
+      - key: ESSENCE_ADMIN_PASSWORD
+        sync: false
+      - key: ESSENCE_SESSION_SECRET
+        generateValue: true
+      - key: ESSENCE_AUTO_START
+        value: "0"
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_API_TOKEN
+        sync: false
+      - key: CLOUDFLARE_CUSTOMER_CODE
+        sync: false
+    disk:
+      name: essence-media
+      mountPath: /var/data
+      sizeGB: 20
