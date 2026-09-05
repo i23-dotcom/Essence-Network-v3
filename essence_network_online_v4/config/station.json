@@ -1,1 +1,60 @@
-
+{
+  "brand": {
+    "name": "Essence Network",
+    "slogan": "WHERE ESSENCE MEETS EXPRESSION",
+    "founder": "IBAUT JUSTINE",
+    "ceo": "IBAUT JUSTINE",
+    "colors": {
+      "sapphireBlue": "#0B4F8A",
+      "pureLight": "#FFFFFF",
+      "black": "#080B12",
+      "green": "#2DB64B"
+    }
+  },
+  "channels": [
+    {
+      "id": "essence-tv",
+      "name": "Essence TV",
+      "description": "Flagship general entertainment channel"
+    },
+    {
+      "id": "essence-news",
+      "name": "Essence News",
+      "description": "News and current affairs"
+    },
+    {
+      "id": "essence-kids",
+      "name": "Essence Kids",
+      "description": "Children and educational programming"
+    },
+    {
+      "id": "essence-gospel",
+      "name": "Essence Gospel",
+      "description": "Gospel, faith and inspirational programming"
+    },
+    {
+      "id": "essence-music",
+      "name": "Essence Music",
+      "description": "Music, artists and live performances"
+    },
+    {
+      "id": "prime-expression",
+      "name": "Prime Expression",
+      "description": "Premium African culture, lifestyle and expression"
+    }
+  ],
+  "programs": [
+    "Essence News",
+    "Kids of Essence",
+    "Gospel Express",
+    "Sports Essence",
+    "Essence Music",
+    "Essence After Dark",
+    "Morning Essence",
+    "Sermon Express",
+    "Essence Live",
+    "Essence Tech",
+    "Movie Essence",
+    "Life Essence"
+  ]
+}
