@@ -16,7 +16,9 @@ services:
       - key: ESSENCE_SESSION_SECRET
         generateValue: true
       - key: ESSENCE_AUTO_START
-        value: "0"
+        value: "1"
+      - key: ESSENCE_AUTO_CLOUDFLARE
+        value: "1"
       - key: CLOUDFLARE_ACCOUNT_ID
         sync: false
       - key: CLOUDFLARE_API_TOKEN

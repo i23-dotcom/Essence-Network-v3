@@ -16,7 +16,8 @@ CFG=json.loads(CONFIG.read_text(encoding='utf-8'))
 ADMIN_EMAIL=os.environ.get('ESSENCE_ADMIN_EMAIL','admin@essencenetwork.tv')
 ADMIN_PASSWORD=os.environ.get('ESSENCE_ADMIN_PASSWORD','change-me-now')
 SESSION_SECRET=os.environ.get('ESSENCE_SESSION_SECRET','change-this-secret')
-AUTO_START=os.environ.get('ESSENCE_AUTO_START','0')=='1'
+AUTO_START=os.environ.get('ESSENCE_AUTO_START','1')=='1'
+AUTO_CLOUDFLARE=os.environ.get('ESSENCE_AUTO_CLOUDFLARE','1')=='1'
 MAX_AGE=60*60*12
 state={'channels':{c['id']:{'status':'OFF AIR','current':'No program','next':'Awaiting schedule','pid':None,'proc':None,'started_at':None,'restarts':0} for c in CFG['channels']}}
 lock=threading.RLock(); sessions={}
@@ -52,13 +53,25 @@ def start_channel(cid, restart=False):
     for x in out.glob('*'):
         try:x.unlink()
         except:pass
-    # Local 24/7 demo playout. If a Cloudflare/RTMPS input is provisioned, the same engine can push there too.
+    # 24/7 demo playout. When a Cloudflare Live Input exists, send the same encoded
+    # program to Cloudflare while also keeping a local HLS backup for the public player.
     target=out/'index.m3u8'
-    cmd=['ffmpeg','-hide_banner','-loglevel','warning','-stream_loop','-1','-re','-i',str(demo),'-c:v','libx264','-preset','veryfast','-tune','zerolatency','-pix_fmt','yuv420p','-r','25','-g','50','-keyint_min','50','-sc_threshold','0','-c:a','aac','-b:a','128k','-ar','48000','-f','hls','-hls_time','2','-hls_list_size','8','-hls_flags','delete_segments+append_list',str(target)]
-    # If an operator has provided a per-channel RTMPS output, mirror the program to it.
     rtmp=os.environ.get('ESSENCE_'+cid.upper().replace('-','_')+'_RTMPS_URL')
+    if not rtmp and CF_FILE.exists():
+        try:
+            cf=json.loads(CF_FILE.read_text(encoding='utf-8'))
+            inp=cf.get(cid,{})
+            r=inp.get('rtmps',{}) if isinstance(inp,dict) else {}
+            if r.get('url') and r.get('streamKey'):
+                rtmp=r['url']+r['streamKey']
+        except Exception:
+            rtmp=None
+    base=['ffmpeg','-hide_banner','-loglevel','warning','-stream_loop','-1','-re','-i',str(demo),'-c:v','libx264','-preset','veryfast','-tune','zerolatency','-pix_fmt','yuv420p','-r','25','-g','50','-keyint_min','50','-sc_threshold','0','-c:a','aac','-b:a','128k','-ar','48000']
     if rtmp:
-        cmd=['ffmpeg','-hide_banner','-loglevel','warning','-stream_loop','-1','-re','-i',str(demo),'-c:v','libx264','-preset','veryfast','-tune','zerolatency','-pix_fmt','yuv420p','-r','25','-g','50','-keyint_min','50','-sc_threshold','0','-c:a','aac','-b:a','128k','-ar','48000','-f','flv',rtmp]
+        # One encoder, two outputs: local HLS plus Cloudflare RTMPS.
+        cmd=base+['-map','0:v:0','-map','0:a:0','-f','tee',f'[f=hls:hls_time=2:hls_list_size=8:hls_flags=delete_segments+append_list]{target}|[f=flv]{rtmp}']
+    else:
+        cmd=base+['-f','hls','-hls_time','2','-hls_list_size','8','-hls_flags','delete_segments+append_list',str(target)]
     log=open(LOGS/f'{cid}.log','a',buffering=1)
     p=subprocess.Popen(cmd,stdout=log,stderr=log)
     with lock:
@@ -101,6 +114,16 @@ def provision_cloudflare():
         manifest=(f'https://customer-{code}.cloudflarestream.com/{r.get("uid")}/manifest/video.m3u8' if code else '')
         out[cid]={'uid':r.get('uid'),'rtmps':r.get('rtmps',{}),'created':time.time(),'manifest':manifest}
     CF_FILE.write_text(json.dumps(out,indent=2),encoding='utf-8'); return True,'Provisioned',out
+
+# On production Render deployments, provision Cloudflare inputs automatically when credentials are present.
+# This makes a fresh deploy self-starting; without Cloudflare credentials the local HLS demo still runs.
+if AUTO_CLOUDFLARE and os.environ.get('CLOUDFLARE_API_TOKEN') and os.environ.get('CLOUDFLARE_ACCOUNT_ID'):
+    try:
+        ok,msg,data=provision_cloudflare()
+        print('Cloudflare provisioning:', ok, msg)
+    except Exception as e:
+        print('Cloudflare provisioning failed:', e)
+
 
 class H(BaseHTTPRequestHandler):
     server_version='EssenceOnline/4.0'

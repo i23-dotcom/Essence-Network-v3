@@ -31,3 +31,7 @@ For a true 24/7 channel, replace the bundled demo with licensed programming and 
 ## Security
 
 Do not leave the default admin password. Set strong secrets in Render. Control endpoints and uploads require a signed session. Before opening the Studio to a large operations team, add individual accounts, roles, audit logs, rate limiting and a managed database.
+
+
+## v5 operational behavior
+This build auto-starts all six channels and, when Cloudflare credentials are present, automatically provisions Live Inputs and mirrors each channel to Cloudflare RTMPS. Without Cloudflare credentials it still provides continuous local HLS demo playout.
